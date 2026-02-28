@@ -264,3 +264,9 @@ def me(request: Request):
             "drive": drive_resp.json(),
         },
     )
+
+@router.get("/auth/google/logout")
+def logout():
+    response = JSONResponse({"message": "Logged out successfully"})
+    response.delete_cookie(key="access_token", path="/")
+    return response
