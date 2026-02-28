@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import DocumentTable from "./DocumentTable/DocumentTable";
 
 export default function MainPage() {
   const [query, setQuery] = useState("");
@@ -66,6 +67,11 @@ export default function MainPage() {
             Search
           </button>
         </form>
+
+        <DocumentTable results={[
+          { "nombre": "Contrato 2024", "fecha": "2024-01-15", "autor": "Ana García", "type": "PDF" },
+          { "nombre": "Factura Marzo", "fecha": "2024-03-01", "type": "Word" },
+          { "nombre": "Informe Q1", "fecha": "2024-04-10", "autor": "Sara Martín", "type": "Excel", "descripcion": "gato" }]} />
       </main>
     </div>
   );
