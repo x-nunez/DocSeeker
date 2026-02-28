@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from src.eater.eater import recibir_documento
 from src.db.interfazDB import crearCollection
 from src.classes.document import Document
-
+from src.db.interfazDB import patternSearchByPath
 from src.cloud.file import File
 
 # Read .env parameters for connection
@@ -73,6 +73,13 @@ def getDrawingsFile(access_token, file_id):
 	}
 	return requests.get(url, headers=headers, params=params, stream=True)
 
+def checkFile(file_path):
+	print(file_path)
+	if len(patternSearchByPath(file_path)) <= 0:
+		print(file_path)
+		return False
+	return True
+
 def getFile(access_token, file_metadata):
 	file_id = file_metadata['id']
 	file_name = file_metadata['name']
@@ -103,16 +110,15 @@ def getFile(access_token, file_metadata):
 
 	file_path = os.path.join("tmp", file_name)
 
+	if not checkFile(file_path):
+		return
+
 	with open(file_path, "wb") as f:
 		for chunk in response.iter_content(chunk_size=8192):
 			if chunk:
 				f.write(chunk)
 
 	return File(file_path, file_name, file_metadata)
-
-def checkFile(file_metadata):
-	return True
-
 
 def updateDB(access_token):
 	files = []
@@ -139,14 +145,10 @@ def updateDB(access_token):
 		params["pageToken"] = next_token
 
 	for f in files:
-		print(f)
-		if checkFile(f):
-			file = getFile(access_token, f)
-			if file:
-				documento = Document(file.name, file.path, file.metadata["fileExtension"])
-				recibir_documento(documento)
-
-	return
+		file = getFile(access_token, f)
+		if file:
+			documento = Document(file.path, file.name, file.metadata["fileExtension"], file.metadata["modifiedTime"], file.metadata["createdTime"], file.metadata["size"], file.metadata["webViewLink"])
+			recibir_documento(documento)
 
 # Login Endpoint
 @router.get("/auth/google/login")
@@ -208,37 +210,11 @@ def downloadall(request: Request):
     if not access_token:
         raise HTTPException(status_code=401, detail="Missing token")
 
-    files = []
-
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Accept": "application/json"
-    }
-    url = "https://www.googleapis.com/drive/v3/files"
-    params = {
-        "pageSize": 1000,
-        "fields": "nextPageToken,files(id,name,mimeType)"
-    }
-
-    while True:
-        response = requests.get(url, headers=headers, params=params)
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=response.text)
-
-        data = response.json()
-        files.extend(data.get("files", []))
-
-        next_token = data.get("nextPageToken")
-        if not next_token:
-            break
-        params["pageToken"] = next_token
-    print(files)
-    return "Test"
+    updateDB(access_token)
 
 @router.get("/auth/google/me")
 def me(request: Request):
     access_token = request.cookies.get("access_token")
-    print("Cookie = ", access_token)
 
     if not access_token:
         raise HTTPException(status_code=401, detail="Missing token")

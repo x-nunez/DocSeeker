@@ -1,11 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import DocumentTable from "../DocumentTable/DocumentTable";
 
 export default function MainPage() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState({
+    nombre: "",
+    extension: "",
+    size_min: null as number | null,
+    size_max: null as number | null,
+    date_min: null as string | null,
+    date_max: null as string | null,
+  });
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -13,7 +22,7 @@ export default function MainPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/sherlock/search?query=${encodeURIComponent(query)}`,
+        `http://localhost:8000/sherlock/busquedaVectorial?string=${encodeURIComponent(query)}`,
         {
           method: "GET",
           credentials: "include",
@@ -31,6 +40,10 @@ export default function MainPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFilterChange = (filterName: string, value: any) => {
+    setFilters((prev) => ({ ...prev, [filterName]: value }));
   };
 
   return (
@@ -55,11 +68,69 @@ export default function MainPage() {
         </button>
       </div>
 
-      {result && (
-        <div className="mt-4 p-4 bg-gray-100 rounded">
-          <pre className="whitespace-pre-wrap text-black">
-            {JSON.stringify(result, null, 2)}
-          </pre>
+      <div className="flex gap-4 mb-6 p-4 bg-white border rounded overflow-x-auto dark:bg-black">
+        <div className="flex-shrink-0 w-48">
+          <label className="block text-sm font-semibold mb-2">Extension</label>
+          <select
+            value={filters.extension}
+            onChange={(e) => handleFilterChange("extension", e.target.value)}
+            className="px-3 py-2 border rounded bg-white dark:bg-gray-800 text-black dark:text-white"
+          >
+            <option value="">all</option>
+            <option value=".pdf">.pdf</option>
+            <option value=".txt">.txt</option>
+            <option value=".docx">.doc</option>
+            <option value=".jpg">.jpg</option>
+            <option value=".png">.png</option>
+          </select>
+        </div>
+
+        <div className="flex-shrink-0">
+          <label className="block text-sm font-semibold mb-2">Size Min (bytes)</label>
+          <input
+            type="number"
+            value={filters.size_min || ""}
+            onChange={(e) => handleFilterChange("size_min", e.target.value ? parseInt(e.target.value) : null)}
+            placeholder="0"
+            className="px-3 py-2 border rounded"
+          />
+        </div>
+
+        <div className="flex-shrink-0">
+          <label className="block text-sm font-semibold mb-2">Size Max (bytes)</label>
+          <input
+            type="number"
+            value={filters.size_max || ""}
+            onChange={(e) => handleFilterChange("size_max", e.target.value ? parseInt(e.target.value) : null)}
+            placeholder="9999999"
+            className="px-3 py-2 border rounded"
+          />
+        </div>
+
+        <div className="flex-shrink-0">
+          <label className="block text-sm font-semibold mb-2">Date From</label>
+          <input
+            type="date"
+            value={filters.date_min || ""}
+            onChange={(e) => handleFilterChange("date_min", e.target.value || null)}
+            className="px-3 py-2 border rounded"
+          />
+        </div>
+
+        <div className="flex-shrink-0">
+          <label className="block text-sm font-semibold mb-2">Date To</label>
+          <input
+            type="date"
+            value={filters.date_max || ""}
+            onChange={(e) => handleFilterChange("date_max", e.target.value || null)}
+            className="px-3 py-2 border rounded"
+          />
+        </div>
+      </div>
+
+      {result && !result.error && Array.isArray(result) && (
+        <div className="mt-4">
+          <DocumentTable results={result} />
         </div>
       )}
     </div>
