@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 
 class Document:
 	def __init__(self, path, name, extension, modified_time, creation_time, size, link, id = None):

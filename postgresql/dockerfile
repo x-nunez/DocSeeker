@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 FROM postgres:16-alpine
 
 # PostgreSQL automatically executes scripts located in

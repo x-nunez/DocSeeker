@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 import src.conexions.config as config
 from qdrant_client.models import VectorParams, Distance, PointStruct
 import uuid
@@ -20,7 +22,7 @@ def embedding_texto(texto):
 
 def crearCollection():
     # Fix: extraer nombres antes de comparar
-    #qdrant_client.delete_collection(collection_name="documentos")
+    qdrant_client.delete_collection(collection_name="documentos")
     existing = []
     last_error = None
     for _ in range(10):
@@ -58,7 +60,7 @@ def insertarPostgreSQL(documento):
         postgres_connection.commit()
         return documento_id
 
-def insertarDocumento(documento_id, chunks, filename):
+def insertarDocumento(documento_id, chunks, filename, extension):
     """
     Recibe el UUID del documento (ya insertado en PostgreSQL)
     y la lista de chunks de texto. Genera embeddings y los sube a Qdrant.
@@ -74,6 +76,7 @@ def insertarDocumento(documento_id, chunks, filename):
                     "documento_id": str(documento_id),  # FK a PostgreSQL
                     "chunk_index": i,
                     "nombre_documento": filename,
+                    "extension": extension,
                     "texto": chunk
                 }
             )
@@ -137,7 +140,7 @@ def vectorSearch(query_texto):
         collection_name="documentos",
         query=vector,
         limit=10,
-        score_threshold=0.4,
+        score_threshold=0.5,
         with_payload=True
     )
 

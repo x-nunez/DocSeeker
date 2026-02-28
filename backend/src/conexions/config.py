@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 # src/config.py
 import os
 from qdrant_client import QdrantClient
