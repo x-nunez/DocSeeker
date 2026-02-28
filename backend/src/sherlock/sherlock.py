@@ -10,6 +10,7 @@ router.include_router(search_router)
 
 class FiltrosBusqueda(BaseModel):
     nombre: Optional[str] = None
+    path: Optional[str] = None
     extension: Optional[str] = None
     size_min: Optional[int] = None
     size_max: Optional[int] = None
@@ -27,6 +28,10 @@ def busquedaExacta(filtros: FiltrosBusqueda):
 
     if filtros.nombre:
         results = interfazDB.patternSearchByName(f"%{filtros.nombre}%")
+
+    if filtros.path:
+        by_path = interfazDB.patternSearchByPath(f"%{filtros.path}%")
+        results = by_path if not results else [r for r in results if r in by_path]
 
     if filtros.extension:
         by_extension = interfazDB.patternSearchByExtension(f"%{filtros.extension}%")
@@ -51,5 +56,6 @@ def busquedaVectorial(string):
         list: A list of records matching the vector query. Returns an empty list if no matches are found.
     """
     documents = interfazDB.vectorSearch(string)
+    return documents
 
 

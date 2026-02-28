@@ -1,6 +1,7 @@
 import src.conexions.config as config
 from qdrant_client.models import VectorParams, Distance, PointStruct
 import uuid
+import time
 
 qdrant_client = config.qdrant_client
 model = config.model
@@ -10,7 +11,21 @@ def embedding_texto(texto):
 
 def crearCollection():
     # Fix: extraer nombres antes de comparar
-    existing = [c.name for c in qdrant_client.get_collections().collections]
+    #qdrant_client.delete_collection(collection_name="documentos")
+    existing = []
+    last_error = None
+    for _ in range(10):
+        try:
+            existing = [c.name for c in qdrant_client.get_collections().collections]
+            last_error = None
+            break
+        except Exception as error:
+            last_error = error
+            time.sleep(1)
+
+    if last_error is not None:
+        raise last_error
+
     collection_name = "documentos"
 
     if collection_name not in existing:
@@ -28,8 +43,8 @@ def insertarPostgreSQL(documento):
     """
     postgres_connection = config.get_postgres_connection()
     with postgres_connection.cursor() as cursor:
-        query = "INSERT INTO documentos (name, path, extension) VALUES (%s, %s, %s) RETURNING id"
-        cursor.execute(query, (documento.name, documento.path, documento.extension))
+        query = "INSERT INTO documentos (nombre, path, extension, modified_time, creation_time, size, link) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"
+        cursor.execute(query, (documento.name, documento.path, documento.extension, documento.modified_time, documento.creation_time, documento.size, documento.link))
         documento_id = cursor.fetchone()[0]
         postgres_connection.commit()
         return documento_id
@@ -97,23 +112,41 @@ def patternSearchByCreationDate(date_min, date_max):
         cursor.execute(query, (date_min, date_max))
         return cursor.fetchall()
 
+def patternSearchByPath(path_pattern):
+    postgres_connection = config.get_postgres_connection()
+    with postgres_connection.cursor() as cursor:
+        query = "SELECT * FROM documentos WHERE path = %s"
+        cursor.execute(query, (path_pattern,))
+        results = cursor.fetchall()
+        # Aquí puedes convertir los resultados a objetos Document si es necesario
+        return results
+
 def vectorSearch(query_texto):
     vector = embedding_texto(query_texto)
-    results = qdrant_client.search(
+
+    results = qdrant_client.query_points(
         collection_name="documentos",
-        query_vector=vector,
+        query=vector,
         limit=10,
         with_payload=True
     )
 
-    # Agrupar por documento_id eliminando chunks duplicados del mismo documento
-    # y quedarse solo con el par id-nombre del payload
     vistos = {}
-    for result in results:
-        doc_id = result.payload.get("documento_id")
-        nombre = result.payload.get("nombre_documento")
+    fragmentos = {}  # guarda el chunk más relevante por documento (el primero = mayor score)
+    for result in results.points:
+        payload = result[1] if isinstance(result, tuple) else result.payload
+        doc_id = payload.get("documento_id")
+        nombre = payload.get("nombre_documento")
+        texto = payload.get("texto", "")
         if doc_id and doc_id not in vistos:
             vistos[doc_id] = nombre
+            fragmentos[doc_id] = texto  # el primero en aparecer es el de mayor score
 
-    # Devuelve lista de dicts {documento_id, nombre}
-    return [{"documento_id": doc_id, "nombre_documento": nombre} for doc_id, nombre in vistos.items()]
+    return [
+        {
+            "documento_id": doc_id,
+            "nombre_documento": nombre,
+            "fragmento": fragmentos[doc_id]  # chunk más relevante del documento
+        }
+        for doc_id, nombre in vistos.items()
+    ]
