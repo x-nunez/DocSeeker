@@ -74,13 +74,18 @@ def getDrawingsFile(access_token, file_id):
 	return requests.get(url, headers=headers, params=params, stream=True)
 
 def checkFile(file_path):
-	print(file_path)
-	if len(patternSearchByPath(file_path)) <= 0:
-		print(file_path)
-		return False
-	return True
+	if patternSearchByPath(file_path):
+		return True
+	return False
 
 def getFile(access_token, file_metadata):
+	if "fileExtension" not in file_metadata:
+		return
+	if "capabilities" in file_metadata:
+		if "canDownload" in file_metadata["capabilities"]:
+			if not file_metadata["capabilities"]["canDownload"]:
+				return
+
 	file_id = file_metadata['id']
 	file_name = file_metadata['name']
 	file_mimeType = file_metadata['mimeType']
@@ -110,7 +115,7 @@ def getFile(access_token, file_metadata):
 
 	file_path = os.path.join("tmp", file_name)
 
-	if not checkFile(file_path):
+	if checkFile(file_path):
 		return
 
 	with open(file_path, "wb") as f:
