@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv('.env')
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.sherlock.sherlock import router as search_router

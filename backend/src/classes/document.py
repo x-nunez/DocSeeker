@@ -1,7 +1,7 @@
 
 class Document:
-	def __init__(self, path, name, extension, vector = None):
+	def __init__(self, path, name, extension, id = None):
 		self.path = path
 		self.name = name
 		self.extension = extension
-		self.vector = vector
+		self.id = id
