@@ -9,7 +9,7 @@ import { SiGoogledocs, SiGoogleforms, SiGooglesheets, SiGoogleslides } from "rea
 
 export default function DocumentTable({ results }: { results: Record<string, unknown>[] }) {
     //Si la tabla es vacia no se genera nada
-    if (results.length === 0) return <p>No documents found</p>; //TODO: Revisar CSS
+    if (results!= null && results.length == 0) return <p>No documents found</p>; //TODO: Revisar CSS
 
     const ICON_SIZE = 30;
     const iconos: Record<string, JSX.Element> = {

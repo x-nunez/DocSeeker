@@ -111,6 +111,7 @@ def dividir_en_chunks(texto, palabras_por_chunk=250, overlap=25):
     return chunks
 
 def recibir_documento(documento):
+    print("Leyendo documento")
     texto = ""
     if documento.extension == "pdf":
         texto = leer_pdf(documento.path)
@@ -126,6 +127,7 @@ def recibir_documento(documento):
         texto = leer_pptx(documento.path)
 
     if(texto != ""):
+        print("Texto: ", texto)
         texto_limpio = limpiar_texto(texto)
         chunks = dividir_en_chunks(texto_limpio)
         for i in chunks:
@@ -138,3 +140,5 @@ def recibir_documento(documento):
         print("Insertado en Postgre con ID: " + str(documento_id))
         interfazDB.insertarDocumento(documento_id, chunks, documento.name)
         print("Insertado en Qdrant")
+    else:
+        print("No hay texto")
