@@ -1,7 +1,9 @@
-from db import interfazDB
+from src.db import interfazDB
 from fastapi import APIRouter
+from .search import router as search_router
 
 router = APIRouter()
+router.include_router(search_router)
 
 @router.get("/busquedaExacta")
 def busquedaExacta(string):

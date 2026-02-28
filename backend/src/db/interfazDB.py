@@ -1,5 +1,15 @@
-from main import qdrant_client, postgres_connection
+from src.conexions.qdrant_client import get_qdrant_client
+from src.conexions.pg_conn import get_postgres_connection
 from qdrant_client.models import VectorParams, Distance
+
+qdrant_client = get_qdrant_client()
+
+postgres_connection = None
+def get_db():
+    global postgres_connection
+    if postgres_connection is None:
+        postgres_connection = get_postgres_connection()
+    return postgres_connection
 
 def crearCollection():
     collections = qdrant_client.get_collections().collections
