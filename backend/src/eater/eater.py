@@ -1,6 +1,6 @@
 import re
-from procesamiento import procesar_txt, generar_vectores, compare
-from interfazDB import insertarDocumento
+from classes.document import Document
+import db.interfazDB as interfazDB
 import os
 import PyPDF2
 import docx
@@ -64,9 +64,6 @@ def dividir_en_chunks(texto, palabras_por_chunk=250, overlap=25):
         chunks.append(" ".join(chunk))
         i += palabras_por_chunk - overlap
 
-    # Fix: esta condición nunca era True porque el while ya cubre todo el texto.
-    # Se elimina el bloque redundante al final del bucle.
-
     return chunks
 
 def recibir_documento(path):
@@ -88,13 +85,10 @@ def recibir_documento(path):
 
         print("Divido")
 
-        embeddings = generar_vectores(chunks)
+        documento_id = interfazDB.insertarPostgreSQL(Document(path=path, name=os.path.basename(path), extension=extension))
+        print("Insertado en Postgre con ID: " + str(documento_id))
+        interfazDB.insertarDocumento(documento_id, chunks, os.path.basename(path))
+        print("Insertado en Qdrant")
 
-        for i in embeddings:
-            print(i)
 
-        compare(embeddings)
-
-        
-
-recibir_documento("tmp/hola.txt")
+#recibir_documento("tmp/hola.txt")
