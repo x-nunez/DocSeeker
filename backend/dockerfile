@@ -23,7 +23,6 @@ RUN pip install --no-cache-dir \
 	python-dotenv \
 	qdrant-client \
 	psycopg2-binary \
-	sentence-transformers \
 	scikit-learn \
 	requests \
 	PyPDF2 \
@@ -31,7 +30,8 @@ RUN pip install --no-cache-dir \
 	pdf2image \
 	pillow \
 	pytesseract \
-	openpyxl
+	openpyxl \
+	google-genai
 
 COPY . /app
 
