@@ -15,7 +15,7 @@ export default function Home() {
           credentials: "include",
         });
         if (res.ok) {
-          router.push("/dashboard"); 
+          router.push("/dashboard");
         }
       } catch {
         console.log("No valid token")

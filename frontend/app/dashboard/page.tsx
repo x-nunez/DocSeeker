@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SearchBar from "./SearchBar/SearchBar";
+import DocumentTable from "./DocumentTable/DocumentTable";
 
 export default function MainPage() {
   const [query, setQuery] = useState("");
