@@ -41,13 +41,13 @@ def busquedaExacta(filtros: FiltrosBusqueda):
     return results
 
 @router.get("/busquedaVectorial")
-def busquedaVectorial(vector):
+def busquedaVectorial(string):
     """
     Searches for files using a vector representation of the query.
 
     Returns:
         list: A list of records matching the vector query. Returns an empty list if no matches are found.
     """
-    documents = interfazDB.vectorSearch(vector)
+    documents = interfazDB.vectorSearch(string)
 
 
