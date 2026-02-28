@@ -1,6 +1,7 @@
 import src.conexions.config as config
 from qdrant_client.models import VectorParams, Distance, PointStruct
 import uuid
+import time
 
 qdrant_client = config.qdrant_client
 model = config.model
@@ -11,7 +12,20 @@ def embedding_texto(texto):
 def crearCollection():
     # Fix: extraer nombres antes de comparar
     #qdrant_client.delete_collection(collection_name="documentos")
-    existing = [c.name for c in qdrant_client.get_collections().collections]
+    existing = []
+    last_error = None
+    for _ in range(10):
+        try:
+            existing = [c.name for c in qdrant_client.get_collections().collections]
+            last_error = None
+            break
+        except Exception as error:
+            last_error = error
+            time.sleep(1)
+
+    if last_error is not None:
+        raise last_error
+
     collection_name = "documentos"
 
     if collection_name not in existing:
