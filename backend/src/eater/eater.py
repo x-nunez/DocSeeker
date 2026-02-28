@@ -1,5 +1,7 @@
 import PyPDF2
 import re
+from procesamiento import procesar_txt, generar_vectores, compare
+from interfazDB import insertarDocumento
 
 def leer_pdf(path):
     texto=""
@@ -56,3 +58,33 @@ def dividir_en_chunks(texto, palabras_por_chunk=750, overlap=75):
         chunks.append(" ".join(palabras[i:]))
 
     return chunks
+
+def recibir_documento(path):
+    print(path)
+    extension = path.split(".")[-1].lower()
+    print(extension)
+
+    if extension == "pdf":
+        pass
+    elif extension == "png" or extension == "jpeg" or extension == "jpg":
+        pass
+    elif extension == "txt":
+        texto = procesar_txt(path)
+        texto_limpio = limpiar_texto(texto)
+        chunks = dividir_en_chunks(texto_limpio)
+        for i in chunks:
+            print(i + "\n")
+            print("Tamaño: " + str(len(i.split(" "))))
+
+        print("Divido")
+
+        embeddings = generar_vectores(chunks)
+
+        for i in embeddings:
+            print(i)
+
+        compare(embeddings)
+
+        
+
+recibir_documento("tmp/hola.txt")
