@@ -6,9 +6,6 @@ from fastapi import Request, HTTPException, APIRouter
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from dotenv import load_dotenv
-load_dotenv('.env')
-
 app = FastAPI()
 
 app.add_middleware(
