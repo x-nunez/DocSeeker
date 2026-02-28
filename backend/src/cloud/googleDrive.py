@@ -215,31 +215,7 @@ def downloadall(request: Request):
     if not access_token:
         raise HTTPException(status_code=401, detail="Missing token")
 
-    files = []
-
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Accept": "application/json"
-    }
-    url = "https://www.googleapis.com/drive/v3/files"
-    params = {
-        "pageSize": 1000,
-        "fields": "nextPageToken,files(id,name,mimeType)"
-    }
-
-    while True:
-        response = requests.get(url, headers=headers, params=params)
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=response.text)
-
-        data = response.json()
-        files.extend(data.get("files", []))
-
-        next_token = data.get("nextPageToken")
-        if not next_token:
-            break
-        params["pageToken"] = next_token
-    return "Test"
+    updateDB(access_token)
 
 @router.get("/auth/google/me")
 def me(request: Request):

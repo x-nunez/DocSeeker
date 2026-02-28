@@ -13,8 +13,7 @@ CLIENT_ID = os.getenv("MICROSOFT_CLIENT_ID")
 CLIENT_SECRET = os.getenv("MICROSOFT_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("MICROSOFT_REDIRECT_URI")
 TENANT_ID = os.getenv("MICROSOFT_TENANT_ID", "common")  # 'common' para cuentas personales y de empresa
-SCOPE = "https://graph.microsoft.com/Files.Read.All https://graph.microsoft.com/User.Read offline_access"
-
+SCOPE = "Files.Read.All User.Read offline_access"
 GRAPH_BASE = "https://graph.microsoft.com/v1.0"
 
 router = APIRouter()
@@ -158,6 +157,7 @@ def updateDB(access_token):
 
 @router.get("/auth/microsoft/login")
 def login_with_microsoft():
+    print("CLIENT_ID: ", CLIENT_ID)
     params = {
         "client_id": CLIENT_ID,
         "response_type": "code",
@@ -174,7 +174,7 @@ def login_with_microsoft():
 def microsoft_callback(request: Request, code: str = None, background_tasks: BackgroundTasks = None):
     if not code:
         return JSONResponse({"error": "No code provided"}, status_code=400)
-
+    print("CLIENT_SECRET: ", CLIENT_SECRET)
     token_url = f"https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token"
     data = {
         "code": code,
@@ -187,6 +187,7 @@ def microsoft_callback(request: Request, code: str = None, background_tasks: Bac
 
     r = requests.post(token_url, data=data)
     token_response = r.json()
+    print("TOKEN RESPONSE: ", token_response)
 
     access_token = token_response.get("access_token")
     expires_in   = int(token_response.get("expires_in", 3600))

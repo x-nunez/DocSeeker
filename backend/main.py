@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.sherlock.sherlock import router as search_router
 from src.cloud.googleDrive import router as cloud_router
+from src.cloud.oneDrive import router as onedrive_router
 from contextlib import asynccontextmanager
 from src.db.interfazDB import crearCollection
 
@@ -25,4 +26,5 @@ app.add_middleware(
 
 # Include routers
 app.include_router(cloud_router, tags=["cloud"])
+app.include_router(onedrive_router, tags=["cloud"])
 app.include_router(search_router, prefix="/sherlock", tags=["sherlock"])
