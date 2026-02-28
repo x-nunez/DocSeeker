@@ -51,5 +51,6 @@ def busquedaVectorial(string):
         list: A list of records matching the vector query. Returns an empty list if no matches are found.
     """
     documents = interfazDB.vectorSearch(string)
+    return documents
 
 

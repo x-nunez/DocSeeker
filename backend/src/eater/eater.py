@@ -17,25 +17,25 @@ def leer_pdf(path):
         lector = PyPDF2.PdfReader(archivo)
         for pagina in lector.pages:
             texto += pagina.extract_text()
-    return texto
+
+    # Check if text has been read
+    if texto and len(texto.strip()) >= 30:
+        return texto
+
+    texto_ocr = ""
+    paginas = convert_from_path(path)
+
+    for pagina in paginas:
+        texto_ocr += pytesseract.image_to_string(pagina, lang="spa+eng") + "\n"
+    return texto_ocr
 
 def leer_txt(path):
     texto = ""
     with open(path, "r", encoding="utf-8") as archivo:
         texto = archivo.read()
 
-    # Check if text has been read
-    if texto and len(texto.strip()) >= 30:
-        return texto
-    
-    texto_ocr = ""
-    paginas = convert_from_path(path)
-    
-    for pagina in paginas:
-        texto_ocr += pytesseract.image_to_string(pagina, lang="spa+eng") + "\n"
-    
-    return texto_ocr
-    
+    return texto
+
 def leer_imagen(path):
     try:
         imagen = Image.open(path)
@@ -115,7 +115,7 @@ def recibir_documento(documento):
 
         documento_id = interfazDB.insertarPostgreSQL(documento)
         print("Insertado en Postgre con ID: " + str(documento_id))
-        interfazDB.insertarDocumento(documento_id, chunks, documento.path)
+        interfazDB.insertarDocumento(documento_id, chunks, documento.name)
         print("Insertado en Qdrant")
 
 

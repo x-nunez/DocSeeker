@@ -10,6 +10,7 @@ def embedding_texto(texto):
 
 def crearCollection():
     # Fix: extraer nombres antes de comparar
+    #qdrant_client.delete_collection(collection_name="documentos")
     existing = [c.name for c in qdrant_client.get_collections().collections]
     collection_name = "documentos"
 
@@ -28,7 +29,7 @@ def insertarPostgreSQL(documento):
     """
     postgres_connection = config.get_postgres_connection()
     with postgres_connection.cursor() as cursor:
-        query = "INSERT INTO documentos (name, path, extension) VALUES (%s, %s, %s) RETURNING id"
+        query = "INSERT INTO documentos (nombre, path, extension) VALUES (%s, %s, %s) RETURNING id"
         cursor.execute(query, (documento.name, documento.path, documento.extension))
         documento_id = cursor.fetchone()[0]
         postgres_connection.commit()
@@ -99,21 +100,22 @@ def patternSearchByCreationDate(date_min, date_max):
 
 def vectorSearch(query_texto):
     vector = embedding_texto(query_texto)
-    results = qdrant_client.search(
+
+    results = qdrant_client.query_points(
         collection_name="documentos",
-        query_vector=vector,
+        query=vector,
         limit=10,
         with_payload=True
     )
 
-    # Agrupar por documento_id eliminando chunks duplicados del mismo documento
-    # y quedarse solo con el par id-nombre del payload
     vistos = {}
-    for result in results:
-        doc_id = result.payload.get("documento_id")
-        nombre = result.payload.get("nombre_documento")
+    for result in results.points:
+        # Fix: result es una tupla, el payload está en result[1]
+        payload = result[1] if isinstance(result, tuple) else result.payload
+        doc_id = payload.get("documento_id")
+        nombre = payload.get("nombre_documento")
         if doc_id and doc_id not in vistos:
+            print(f"Documento ID: {doc_id}, Nombre: {nombre}")
             vistos[doc_id] = nombre
 
-    # Devuelve lista de dicts {documento_id, nombre}
     return [{"documento_id": doc_id, "nombre_documento": nombre} for doc_id, nombre in vistos.items()]
