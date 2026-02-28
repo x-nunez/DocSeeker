@@ -17,28 +17,15 @@ export default function MainPage() {
   });
 
   const handleSearch = async () => {
-    if (!query.trim() && !Object.values(filters).some(v => v)) return;
+    if (!query.trim()) return;
 
     setLoading(true);
     try {
-      const body = {
-        nombre: filters.nombre || undefined,
-        extension: filters.extension || undefined,
-        size_min: filters.size_min || undefined,
-        size_max: filters.size_max || undefined,
-        date_min: filters.date_min || undefined,
-        date_max: filters.date_max || undefined,
-      };
-
       const res = await fetch(
-        "http://localhost:8000/sherlock/busquedaExacta",
+        `http://localhost:8000/sherlock/busquedaVectorial?string=${encodeURIComponent(query)}`,
         {
-          method: "POST",
+          method: "GET",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
         }
       );
 
