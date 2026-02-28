@@ -1,11 +1,9 @@
-import conexions.config as config
+import src.conexions.config as config
 from qdrant_client.models import VectorParams, Distance, PointStruct
-from main import postgres_connection
 import uuid
 
 qdrant_client = config.qdrant_client
 model = config.model
-postgres_connection = config.postgres_connection
 
 def embedding_texto(texto):
     return model.encode(texto).tolist()
@@ -24,10 +22,11 @@ def crearCollection():
             )
         )
 
-def innsertarPostgreSQL(documento):
+def insertarPostgreSQL(documento):
     """
     Inserta un documento en PostgreSQL y devuelve su ID.
     """
+    postgres_connection = config.get_postgres_connection()
     with postgres_connection.cursor() as cursor:
         query = "INSERT INTO documentos (name, path, extension) VALUES (%s, %s, %s) RETURNING id"
         cursor.execute(query, (documento.name, documento.path, documento.extension))
@@ -60,7 +59,7 @@ def insertarDocumento(documento_id, chunks, filename):
 
 # Returns a list of Document elements
 def patternSearchByName(name_pattern):
-
+    postgres_connection = config.get_postgres_connection()
     with postgres_connection.cursor() as cursor:
         query = "SELECT * FROM documentos WHERE name LIKE %s"
         cursor.execute(query, (name_pattern,))
@@ -69,7 +68,7 @@ def patternSearchByName(name_pattern):
         return results
 
 def patternSearchBySize(size_max, size_min):
-
+    postgres_connection = config.get_postgres_connection()
     with postgres_connection.cursor() as cursor:
         query = "SELECT * FROM documentos WHERE size <= %s AND size >= %s"
         cursor.execute(query, (size_max, size_min))
@@ -78,7 +77,7 @@ def patternSearchBySize(size_max, size_min):
         return results
 
 def patternSearchByExtension(extension):
-
+    postgres_connection = config.get_postgres_connection()
     with postgres_connection.cursor() as cursor:
         query = "SELECT * FROM documentos WHERE extension = %s"
         cursor.execute(query, (extension,))
@@ -87,6 +86,7 @@ def patternSearchByExtension(extension):
         return results
 
 def patternSearchByCreationDate(date_min, date_max):
+    postgres_connection = config.get_postgres_connection()
     with postgres_connection.cursor() as cursor:
         # Fix: el orden estaba invertido, date_min va con >= y date_max con <=
         query = """

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import SearchBar from "./SearchBar/SearchBar";
 
 export default function MainPage() {
   const [query, setQuery] = useState("");
@@ -48,24 +49,7 @@ export default function MainPage() {
       </header>
 
       <main className="w-full max-w-md">
-        <form
-          onSubmit={handleSearch}
-          className="flex gap-2 w-full"
-        >
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search documents..."
-            className="flex-1 rounded-l-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
-          />
-          <button
-            type="submit"
-            className="rounded-r-full bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
-          >
-            Search
-          </button>
-        </form>
+        <SearchBar/>
       </main>
     </div>
   );

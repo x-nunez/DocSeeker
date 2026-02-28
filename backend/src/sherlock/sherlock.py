@@ -1,10 +1,12 @@
+from src.db import interfazDB
 from fastapi import APIRouter
+from .search import router as search_router
 from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
-from db import interfazDB
 
 router = APIRouter()
+router.include_router(search_router)
 
 class FiltrosBusqueda(BaseModel):
     nombre: Optional[str] = None

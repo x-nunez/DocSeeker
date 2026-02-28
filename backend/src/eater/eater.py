@@ -73,7 +73,7 @@ def recibir_documento(path):
 
     if extension == "pdf":
         pass
-    elif extension == "png" or extension == "jpeg" or extension == "jpg":
+    elif extension == "png":
         pass
     elif extension == "txt":
         texto = procesar_txt(path)
