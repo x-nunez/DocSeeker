@@ -4,7 +4,9 @@ import requests
 from urllib.parse import urlencode
 from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
 from fastapi.responses import RedirectResponse, JSONResponse
+from src.eater.eater import recibir_documento
 from src.db.interfazDB import crearCollection
+from src.classes.document import Document
 
 from src.cloud.file import File
 
@@ -140,9 +142,9 @@ def updateDB(access_token):
 		print(f)
 		if checkFile(f):
 			file = getFile(access_token, f)
-			documento = documento(file.name, file.path, file.metadata["fileExtension"])
-			# id = insertarPostgreSQL(documento)
-			
+			if file:
+				documento = Document(file.name, file.path, file.metadata["fileExtension"])
+				recibir_documento(documento)
 
 	return
 

@@ -1,0 +1,28 @@
+FROM postgres:16-alpine
+
+# PostgreSQL automatically executes scripts located in
+# /docker-entrypoint-initdb.d/ during first database initialization.
+# Copy the SQL creation script into that directory.
+COPY createDB.sql /docker-entrypoint-initdb.d/
+
+# Expose PostgreSQL default port
+EXPOSE 5432
+
+# ------------------------------------------------------------
+# EXECUTION INSTRUCTIONS (SERVER DEPLOYMENT)
+# ------------------------------------------------------------
+#
+# 1) Create a .env file in the same directory:
+#    POSTGRES_USER=myuser
+#    POSTGRES_PASSWORD=strongpassword
+#    POSTGRES_DB=mydatabase
+#
+# 2) Build the image:
+#    docker build -t hackudc-postgres .
+#
+# 3) Run the container using the .env file:
+#    docker run -d --name postgres-db --env-file .env -p 5432:5432 -v pgdata:/var/lib/postgresql/data --restart unless-stopped hackudc-postgres
+#
+# The SQL script will execute only during the first initialization.
+# If the volume "pgdata" is removed, initialization will run again.
+# ------------------------------------------------------------
