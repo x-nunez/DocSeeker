@@ -43,8 +43,8 @@ def insertarPostgreSQL(documento):
     """
     postgres_connection = config.get_postgres_connection()
     with postgres_connection.cursor() as cursor:
-        query = "INSERT INTO documentos (nombre, path, extension) VALUES (%s, %s, %s) RETURNING id"
-        cursor.execute(query, (documento.name, documento.path, documento.extension))
+        query = "INSERT INTO documentos (nombre, path, extension, modified_time, creation_time, size, link) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"
+        cursor.execute(query, (documento.name, documento.path, documento.extension, documento.modified_time, documento.creation_time, documento.size, documento.link))
         documento_id = cursor.fetchone()[0]
         postgres_connection.commit()
         return documento_id
@@ -112,6 +112,15 @@ def patternSearchByCreationDate(date_min, date_max):
         cursor.execute(query, (date_min, date_max))
         return cursor.fetchall()
 
+def patternSearchByPath(path_pattern):
+    postgres_connection = config.get_postgres_connection()
+    with postgres_connection.cursor() as cursor:
+        query = "SELECT * FROM documentos WHERE path = %s"
+        cursor.execute(query, (path_pattern,))
+        results = cursor.fetchall()
+        # Aquí puedes convertir los resultados a objetos Document si es necesario
+        return results
+
 def vectorSearch(query_texto):
     vector = embedding_texto(query_texto)
 
@@ -123,13 +132,21 @@ def vectorSearch(query_texto):
     )
 
     vistos = {}
+    fragmentos = {}  # guarda el chunk más relevante por documento (el primero = mayor score)
     for result in results.points:
-        # Fix: result es una tupla, el payload está en result[1]
         payload = result[1] if isinstance(result, tuple) else result.payload
         doc_id = payload.get("documento_id")
         nombre = payload.get("nombre_documento")
+        texto = payload.get("texto", "")
         if doc_id and doc_id not in vistos:
-            print(f"Documento ID: {doc_id}, Nombre: {nombre}")
             vistos[doc_id] = nombre
+            fragmentos[doc_id] = texto  # el primero en aparecer es el de mayor score
 
-    return [{"documento_id": doc_id, "nombre_documento": nombre} for doc_id, nombre in vistos.items()]
+    return [
+        {
+            "documento_id": doc_id,
+            "nombre_documento": nombre,
+            "fragmento": fragmentos[doc_id]  # chunk más relevante del documento
+        }
+        for doc_id, nombre in vistos.items()
+    ]
