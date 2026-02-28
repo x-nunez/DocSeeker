@@ -3,16 +3,18 @@ from fastapi.responses import RedirectResponse, JSONResponse
 import os
 import requests
 from urllib.parse import urlencode
+
 from dotenv import load_dotenv
 
-load_dotenv('src/cloud/variables.env')
+load_dotenv('.env')
+
 app = FastAPI()
 
 # Parameters for the connection
 CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
-SCOPE = "https://www.googleapis.com/auth/drive.file openid email profile"
+SCOPE = "https://www.googleapis.com/auth/drive openid email profile"
 
 # Login Endpoint
 @app.get("/auth/google/login")
@@ -63,8 +65,43 @@ def google_callback(request: Request, code: str = None):
         samesite="lax",
         max_age=expires_in
     )
-    
+
     return response
+
+@app.get("/downloadall/google")
+def downloadall(request: Request):
+     access_token = request.cookies.get("access_token")
+
+     if not access_token:
+          raise HTTPException(status_code=401, detail="Missing token")
+
+     files = []
+
+     headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json"
+     }
+     url = "https://www.googleapis.com/drive/v3/files"
+     params = {
+        "pageSize": 1000,              # máximo por página
+        "fields": "nextPageToken,files(id,name,mimeType)"
+    }
+
+     while True:
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code != 200:
+            # si hay error de autorización o token inválido
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+
+        data = response.json()
+        files.extend(data.get("files", []))
+
+        next_token = data.get("nextPageToken")
+        if not next_token:
+            break
+        params["pageToken"] = next_token
+     print(files)
+     return "Test"
 
 @app.get("/auth/google/me")
 def me(request: Request):
