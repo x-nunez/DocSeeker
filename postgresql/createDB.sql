@@ -7,7 +7,7 @@ CREATE TABLE documentos (
     extension VARCHAR(10) NOT NULL,
     modified_time TIMESTAMPTZ,
     creation_time TIMESTAMPTZ,
-    uploaded_at TIMESTAMPTZ DEFAULT NOW(),
+    resume TEXT,
     size BIGINT,
     link TEXT,
     source VARCHAR(50) DEFAULT 'local'

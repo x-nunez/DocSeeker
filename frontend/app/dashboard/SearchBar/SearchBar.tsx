@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 "use client";
 
 import { useState } from "react";
@@ -13,7 +15,7 @@ export default function MainPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/sherlock/search?query=${encodeURIComponent(query)}`,
+        `http://localhost:8000/sherlock/busquedaVectorial?string=${encodeURIComponent(query)}`,
         {
           method: "GET",
           credentials: "include",

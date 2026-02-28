@@ -1,4 +1,6 @@
-FROM node:22-alpine AS deps
+# SPDX-License-Identifier: Apache-2.0F
+
+ROM node:22-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json ./
