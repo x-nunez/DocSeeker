@@ -143,7 +143,7 @@ def updateDB(access_token):
 		if checkFile(f):
 			file = getFile(access_token, f)
 			if file:
-				documento = Document(file.path, file.name, file.metadata["fileExtension"])
+				documento = Document(file.path, file.name, file.metadata["fileExtension"], file.metadata["modifiedTime"], file.metadata["createdTime"], file.metadata["size"], file.metadata["webViewLink"])
 				recibir_documento(documento)
 
 	return
