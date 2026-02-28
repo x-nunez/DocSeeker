@@ -5,9 +5,6 @@ from fastapi import FastAPI
 from fastapi import Request, HTTPException, APIRouter
 from fastapi.responses import RedirectResponse, JSONResponse
 
-from dotenv import load_dotenv
-load_dotenv('.env')
-
 app = FastAPI()
 
 # Read .env parameters for connection

@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv('.env')
 from fastapi import FastAPI
 from src.cloud.googleDrive import app
 
