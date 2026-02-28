@@ -1,9 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function MainPage() {
   const [query, setQuery] = useState("");
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  // Check if authorized
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/auth/google/me", {
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          router.push("/");
+        }
+      } catch (err) {
+        console.log("Auth check failed:", err);
+        router.push("/");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
