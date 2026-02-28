@@ -14,7 +14,7 @@ RUN apt-get update \
 
 RUN apt-get install \
 	tesseract-ocr \
-	tesseract-ocr-sta \
+	tesseract-ocr-spa \
 	poppler-utils
 
 RUN pip install --no-cache-dir \
