@@ -30,7 +30,8 @@ RUN pip install --no-cache-dir \
 	python-docx \
 	pdf2image \
 	pillow \
-	pytesseract
+	pytesseract \
+	openpyxl
 
 COPY . /app
 

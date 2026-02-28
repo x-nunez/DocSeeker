@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from PIL import Image
 import pytesseract
 from pdf2image import convert_from_path
-
+from openpyxl import load_workbook
 router = APIRouter()
 
 def leer_pdf(path):
@@ -51,18 +51,15 @@ def leer_docx(path):
     parrafos = [p.text for p in documento.paragraphs if p.text.strip()]
     return "\n".join(parrafos)
 
-def leer_documento(path):
-    """
-    Función unificada: detecta la extensión y usa el lector adecuado.
-    Soporta .pdf, .docx y .doc
-    """
-    extension = os.path.splitext(path)[1].lower()
-    if extension == ".pdf":
-        return leer_pdf(path)
-    elif extension == ".docx":
-        return leer_docx(path)
-    else:
-        raise ValueError(f"Extensión no soportada: {extension}")
+def leer_xlsx(path):
+    """Lee un archivo .xlsx con openpyxl y devuelve el texto completo."""
+    workbook = load_workbook(filename=path, read_only=True)
+    texto = ""
+    for hoja in workbook.worksheets:
+        for fila in hoja.iter_rows(values_only=True):
+            texto += ",".join(str(celda) if celda is not None else " " for celda in fila) + "\n"
+        texto += "\n"  #Separador de hojas
+    return texto
 
 def limpiar_texto(texto):
     texto = re.sub(r"\n+", " ", texto)
@@ -103,6 +100,10 @@ def recibir_documento(documento):
         texto = leer_imagen(documento.path)
     elif documento.extension == "txt":
         texto = leer_txt(documento.path)
+    elif documento.extension in "docx":
+        texto = leer_docx(documento.path)
+    elif documento.extension in "xlsx":
+        texto = leer_xlsx(documento.path)
 
     if(texto != ""):
         texto_limpio = limpiar_texto(texto)
@@ -117,6 +118,3 @@ def recibir_documento(documento):
         print("Insertado en Postgre con ID: " + str(documento_id))
         interfazDB.insertarDocumento(documento_id, chunks, documento.name)
         print("Insertado en Qdrant")
-
-
-#recibir_documento("tmp/hola.txt")
