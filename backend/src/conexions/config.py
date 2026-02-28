@@ -2,7 +2,6 @@
 import os
 from qdrant_client import QdrantClient
 import psycopg2
-from sentence_transformers import SentenceTransformer
 
 QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
@@ -14,7 +13,6 @@ POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
 
 qdrant_client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
-model = SentenceTransformer("all-MiniLM-L6-v2")
 
 postgres_connection = None
 
@@ -29,3 +27,9 @@ def get_postgres_connection():
             password=POSTGRES_PASSWORD
         )
     return postgres_connection
+
+from google import genai
+from google.genai import types
+
+GEMINI_API_KEY=os.getenv('GEMINI_API_KEY')
+client = genai.Client(api_key=GEMINI_API_KEY)
