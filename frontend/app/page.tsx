@@ -11,10 +11,16 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:8000/auth/google/me", {
-          credentials: "include",
-        });
-        if (res.ok) {
+        const [googleRes, microsoftRes] = await Promise.all([
+          fetch("http://localhost:8000/auth/google/me", {
+            credentials: "include",
+          }),
+          fetch("http://localhost:8000/auth/microsoft/me", {
+            credentials: "include",
+          }),
+        ]);
+
+        if (googleRes.ok || microsoftRes.ok) {
           router.push("/dashboard");
         }
       } catch {
@@ -37,27 +43,39 @@ export default function Home() {
       </header>
 
       <main className="flex flex-col items-center justify-center gap-4">
+        {loading && (
+          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+            <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+            <span>Checking login...</span>
+          </div>
+        )}
+
         <a
           className="flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
           href="http://localhost:8000/auth/google/login"
           rel="noopener noreferrer"
         >
-          {loading ? (
-            <>
-              <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-              <span>Checking login...</span>
-            </>
-          ) : (
-            <>
-              <Image
-                src="/drive.svg"
-                alt="Google Drive logo"
-                width={16}
-                height={16}
-              />
-              <span>Login with Google Drive</span>
-            </>
-          )}
+          <Image
+            src="/google.svg"
+            alt="Google logo"
+            width={16}
+            height={16}
+          />
+          <span>Login with Google</span>
+        </a>
+
+        <a
+          className="flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
+          href="http://localhost:8000/auth/microsoft/login"
+          rel="noopener noreferrer"
+        >
+          <Image
+            src="/microsoft.svg"
+            alt="Microsoft logo"
+            width={16}
+            height={16}
+          />
+          <span>Login with Microsoft</span>
         </a>
       </main>
     </div>
