@@ -41,7 +41,7 @@ def limpiar_texto(texto):
     texto = texto.strip()
     return texto
 
-def dividir_en_chunks(texto, palabras_por_chunk=750, overlap=75):
+def dividir_en_chunks(texto, palabras_por_chunk=250, overlap=25):
     """
     Divide el texto en chunks de palabras_por_chunk con un overlap entre chunks.
 
