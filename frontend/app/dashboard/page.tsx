@@ -104,7 +104,7 @@ export default function MainPage() {
         </p>
       </header>
 
-      <main className="w-full max-w-md">
+      <main className="w-2/3">
         <SearchBar/>
       </main>
     </div>
