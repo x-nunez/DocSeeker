@@ -31,7 +31,8 @@ RUN pip install --no-cache-dir \
 	pdf2image \
 	pillow \
 	pytesseract \
-	openpyxl
+	openpyxl \
+	python-pptx
 
 COPY . /app
 
