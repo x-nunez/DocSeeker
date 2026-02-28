@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from src.cloud.googleDrive import app
 
-
-
 # Redirect to Google login
 @app.get("/auth/google/login")
 def login():
