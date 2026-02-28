@@ -6,10 +6,11 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends gcc \
-	&& rm -rf /var/lib/apt/lists/*
-
-COPY . /app
+    && apt-get install -y --no-install-recommends \
+        tesseract-ocr \
+        tesseract-ocr-spa \
+        poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir \
 	fastapi \
@@ -21,7 +22,12 @@ RUN pip install --no-cache-dir \
 	scikit-learn \
 	requests \
 	PyPDF2 \
-	python-docx
+	python-docx \
+	pdf2image \
+	pillow \
+	pytesseract
+
+COPY . /app
 
 EXPOSE 8000
 
