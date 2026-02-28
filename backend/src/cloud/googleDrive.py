@@ -81,6 +81,10 @@ def checkFile(file_path):
 def getFile(access_token, file_metadata):
 	if "fileExtension" not in file_metadata:
 		return
+	if "capabilities" in file_metadata:
+		if "canDownload" in file_metadata["capabilities"]:
+			if not file_metadata["capabilities"]["canDownload"]:
+				return
 
 	file_id = file_metadata['id']
 	file_name = file_metadata['name']
