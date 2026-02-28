@@ -4,6 +4,7 @@ import src.db.interfazDB as interfazDB
 import os
 import PyPDF2
 import docx
+from pptx import Presentation
 from fastapi import APIRouter
 from PIL import Image
 import pytesseract
@@ -61,6 +62,23 @@ def leer_xlsx(path):
         texto += "\n"  #Separador de hojas
     return texto
 
+def leer_pptx(path):
+    """Lee un archivo .pptx con pytesseract y devuelve el texto completo."""
+    texto = ""
+    powerpoint = Presentation(path)
+    for diapositiva in powerpoint.slides:
+        for forma in diapositiva.shapes:
+            #Texto
+            if forma.has_text_frame:
+                texto += forma.text + "\n"
+            #Tablas
+            elif forma.has_table:
+                for fila in forma.table.rows:
+                    for celda in fila.cells:
+                        texto += celda.text + " "
+                    texto += "\n"
+    return texto
+
 def limpiar_texto(texto):
     texto = re.sub(r"\n+", " ", texto)
     texto = re.sub(r"\s+", " ", texto)
@@ -104,6 +122,8 @@ def recibir_documento(documento):
         texto = leer_docx(documento.path)
     elif documento.extension in "xlsx":
         texto = leer_xlsx(documento.path)
+    elif documento.extension in "pptx":
+        texto = leer_pptx(documento.path)
 
     if(texto != ""):
         texto_limpio = limpiar_texto(texto)
