@@ -4,7 +4,7 @@ import requests
 from urllib.parse import urlencode
 from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
 from fastapi.responses import RedirectResponse, JSONResponse
-from src.db.interfazDB import insertarPostgreSQL
+from src.db.interfazDB import crearCollection
 
 from src.cloud.file import File
 
@@ -140,7 +140,7 @@ def updateDB(access_token):
 		print(f)
 		if checkFile(f):
 			file = getFile(access_token, f)
-			# documento = documento(file.name, file.path, file.metadata["fileExtension"])
+			documento = documento(file.name, file.path, file.metadata["fileExtension"])
 			# id = insertarPostgreSQL(documento)
 			
 
@@ -195,6 +195,7 @@ def google_callback(request: Request, code: str = None, background_tasks: Backgr
 	)
 
     if background_tasks:
+        background_tasks.add_task(crearCollection)
         background_tasks.add_task(updateDB, access_token)
     return response
 
