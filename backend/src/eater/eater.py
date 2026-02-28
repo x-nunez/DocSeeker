@@ -5,6 +5,9 @@ import os
 import PyPDF2
 import docx
 from fastapi import APIRouter
+from PIL import Image
+import pytesseract
+from pdf2image import convert_from_path
 
 router = APIRouter()
 
@@ -15,6 +18,32 @@ def leer_pdf(path):
         for pagina in lector.pages:
             texto += pagina.extract_text()
     return texto
+
+def leer_txt(path):
+    texto = ""
+    with open(path, "r", encoding="utf-8") as archivo:
+        texto = archivo.read()
+
+    # Check if text has been read
+    if texto and len(texto.strip()) >= 30:
+        return texto
+    
+    texto_ocr = ""
+    paginas = convert_from_path(path)
+    
+    for pagina in paginas:
+        texto_ocr += pytesseract.image_to_string(pagina, lang="spa+eng") + "\n"
+    
+    return texto_ocr
+    
+def leer_imagen(path):
+    try:
+        imagen = Image.open(path)
+        texto = pytesseract.image_to_string(imagen, lang="spa+eng")
+        imagen.c
+        return texto.strip()
+    except Exception as e:
+        return ""
 
 def leer_docx(path):
     """Lee un archivo .docx con python-docx y devuelve el texto completo."""
@@ -67,12 +96,15 @@ def dividir_en_chunks(texto, palabras_por_chunk=250, overlap=25):
     return chunks
 
 def recibir_documento(documento):
+    texto = ""
     if documento.extension == "pdf":
-        pass
+        texto = leer_pdf(documento.path)
     elif documento.extension == "png":
-        pass
+        texto = leer_imagen(documento.path)
     elif documento.extension == "txt":
         texto = leer_txt(documento.path)
+
+    if(texto != ""):
         texto_limpio = limpiar_texto(texto)
         chunks = dividir_en_chunks(texto_limpio)
         for i in chunks:
