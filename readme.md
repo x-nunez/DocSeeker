@@ -17,17 +17,25 @@ This project runs with 4 containers:
 Create a `.env` file inside `postgresql/`:
 
 ```env
-POSTGRES_USER=user
-POSTGRES_PASSWORD=password
-POSTGRES_DB=hackudc
+POSTGRES_USER=<postgres_user>
+POSTGRES_PASSWORD=<postgres_password>
+POSTGRES_DB=<postgres_database>
 ```
 
 Create a `.env` file inside `backend/`:
 
 ```env
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+POSTGRES_USER=<postgres_user>
+POSTGRES_PASSWORD=<postgres_password>
+POSTGRES_DB=<postgres_database>
+
+GOOGLE_CLIENT_ID=<google_client_id>
+GOOGLE_CLIENT_SECRET=<google_client_secret>
+GOOGLE_REDIRECT_URI=<google_redirect_uri>
+
+# Optional (defaults are used if omitted)
+POSTGRES_PORT=<postgres_port>
+QDRANT_PORT=<qdrant_port>
 ```
 
 ## 2) Build images
