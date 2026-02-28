@@ -1,4 +1,96 @@
+from fastapi import FastAPI, Request, HTTPException, Cookie
+from fastapi.responses import RedirectResponse, JSONResponse
+import os
+import requests
+from urllib.parse import urlencode
+from dotenv import load_dotenv
 
+load_dotenv('src/cloud/variables.env')
+app = FastAPI()
 
-@app.get("/login")
-def login():
+# Parameters for the connection
+CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
+SCOPE = "https://www.googleapis.com/auth/drive.file openid email profile"
+
+# Login Endpoint
+@app.get("/auth/google/login")
+def login_with_google():
+    params = {
+        "client_id": CLIENT_ID,
+        "response_type": "code",
+        "scope": SCOPE,
+        "redirect_uri": REDIRECT_URI,
+        "access_type": "offline",
+        "prompt": "consent"
+    }
+    url = f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
+    return RedirectResponse(url)
+
+# Google login callback
+@app.get("/auth/google/callback")
+def google_callback(request: Request, code: str = None):
+    if not code:
+        return JSONResponse({"error": "No code provided"}, status_code=400)
+
+    # Exchange code for tokens
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "redirect_uri": REDIRECT_URI,
+        "grant_type": "authorization_code"
+    }
+
+    r = requests.post(token_url, data=data)
+    token_response = r.json()
+
+    access_token = token_response.get("access_token")
+    refresh_token = token_response.get("refresh_token")
+    expires_in = int(token_response.get("expires_in", 3600))
+
+    if not access_token:
+        return JSONResponse({"error": "No access token returned"}, status_code=400)
+
+    response = JSONResponse({"ok": True, "message": "Token stored in cookie"})
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=expires_in
+    )
+    
+    return response
+
+@app.get("/auth/google/me")
+def me(request: Request):
+    access_token = request.cookies.get("access_token")
+    print("Cookie = ", access_token)
+
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Missing token")
+
+    userinfo_resp = requests.get(
+        "https://openidconnect.googleapis.com/v1/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=15
+    )
+    if userinfo_resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    drive_resp = requests.get(
+        "https://www.googleapis.com/drive/v3/about?fields=user,storageQuota",
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=15
+    )
+    if drive_resp.status_code != 200:
+        raise HTTPException(status_code=400, detail="Drive API request failed")
+
+    return {
+        "profile": userinfo_resp.json(),
+        "drive": drive_resp.json()
+    }
