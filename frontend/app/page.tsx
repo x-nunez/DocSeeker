@@ -1,6 +1,32 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/auth/google/me", {
+          credentials: "include",
+        });
+        if (res.ok) {
+          router.push("/dashboard"); 
+        }
+      } catch {
+        console.log("No valid token")
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-zinc-50 font-sans dark:bg-black">
 
@@ -12,30 +38,26 @@ export default function Home() {
 
       <main className="flex flex-col items-center justify-center gap-4">
         <a
-            className="flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
-            href="http://localhost:8000/auth/google/login"
-            rel="noopener noreferrer"
-          >
-            <Image
-              src="/drive.svg"
-              alt="Google Drive logo"
-              width={16}
-              height={16}
-            />
-            Login with Google Drive
-        </a>
-        <a
-            className="flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
-            href="/main"
-            rel="noopener noreferrer"
-          >
-            <Image
-              src="/google.svg"
-              alt="Google logo"
-              width={16}
-              height={16}
-            />
-            Go to Dashboard
+          className="flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
+          href="http://localhost:8000/auth/google/login"
+          rel="noopener noreferrer"
+        >
+          {loading ? (
+            <>
+              <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+              <span>Checking login...</span>
+            </>
+          ) : (
+            <>
+              <Image
+                src="/drive.svg"
+                alt="Google Drive logo"
+                width={16}
+                height={16}
+              />
+              <span>Login with Google Drive</span>
+            </>
+          )}
         </a>
       </main>
     </div>

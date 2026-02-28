@@ -4,8 +4,17 @@ from urllib.parse import urlencode
 from fastapi import FastAPI
 from fastapi import Request, HTTPException, APIRouter
 from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Read .env parameters for connection
 CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
@@ -52,7 +61,9 @@ def google_callback(request: Request, code: str = None):
 	if not access_token:
 		return JSONResponse({"error": "No access token returned"}, status_code=400)
 
-	response = JSONResponse({"ok": True, "message": "Token stored in cookie"})
+	response = RedirectResponse(
+        url=f"http://localhost:3000/dashboard"
+    )
 	response.set_cookie(
 		key="access_token",
 		value=access_token,
@@ -123,7 +134,10 @@ def me(request: Request):
 	if drive_resp.status_code != 200:
 		raise HTTPException(status_code=400, detail="Drive API request failed")
 
-	return {
-		"profile": userinfo_resp.json(),
-		"drive": drive_resp.json()
-	}
+	return JSONResponse(
+        status_code=200,
+        content={
+            "profile": userinfo_resp.json(),
+            "drive": drive_resp.json(),
+        },
+    )
