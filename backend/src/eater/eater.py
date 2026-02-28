@@ -4,11 +4,12 @@ import src.db.interfazDB as interfazDB
 import os
 import PyPDF2
 import docx
+from pptx import Presentation
 from fastapi import APIRouter
 from PIL import Image
 import pytesseract
 from pdf2image import convert_from_path
-
+from openpyxl import load_workbook
 router = APIRouter()
 
 def leer_pdf(path):
@@ -51,18 +52,32 @@ def leer_docx(path):
     parrafos = [p.text for p in documento.paragraphs if p.text.strip()]
     return "\n".join(parrafos)
 
-def leer_documento(path):
-    """
-    Función unificada: detecta la extensión y usa el lector adecuado.
-    Soporta .pdf, .docx y .doc
-    """
-    extension = os.path.splitext(path)[1].lower()
-    if extension == ".pdf":
-        return leer_pdf(path)
-    elif extension == ".docx":
-        return leer_docx(path)
-    else:
-        raise ValueError(f"Extensión no soportada: {extension}")
+def leer_xlsx(path):
+    """Lee un archivo .xlsx con openpyxl y devuelve el texto completo."""
+    workbook = load_workbook(filename=path, read_only=True)
+    texto = ""
+    for hoja in workbook.worksheets:
+        for fila in hoja.iter_rows(values_only=True):
+            texto += ",".join(str(celda) if celda is not None else " " for celda in fila) + "\n"
+        texto += "\n"  #Separador de hojas
+    return texto
+
+def leer_pptx(path):
+    """Lee un archivo .pptx con pytesseract y devuelve el texto completo."""
+    texto = ""
+    powerpoint = Presentation(path)
+    for diapositiva in powerpoint.slides:
+        for forma in diapositiva.shapes:
+            #Texto
+            if forma.has_text_frame:
+                texto += forma.text + "\n"
+            #Tablas
+            elif forma.has_table:
+                for fila in forma.table.rows:
+                    for celda in fila.cells:
+                        texto += celda.text + " "
+                    texto += "\n"
+    return texto
 
 def limpiar_texto(texto):
     texto = re.sub(r"\n+", " ", texto)
@@ -72,7 +87,7 @@ def limpiar_texto(texto):
     texto = texto.strip()
     return texto
 
-def dividir_en_chunks(texto, palabras_por_chunk=250, overlap=25):
+def dividir_en_chunks(texto, palabras_por_chunk=600, overlap=75):
     """
     Divide el texto en chunks de palabras_por_chunk con un overlap entre chunks.
 
@@ -96,6 +111,7 @@ def dividir_en_chunks(texto, palabras_por_chunk=250, overlap=25):
     return chunks
 
 def recibir_documento(documento):
+    print("Leyendo documento")
     texto = ""
     if documento.extension == "pdf":
         texto = leer_pdf(documento.path)
@@ -103,8 +119,15 @@ def recibir_documento(documento):
         texto = leer_imagen(documento.path)
     elif documento.extension == "txt":
         texto = leer_txt(documento.path)
+    elif documento.extension in "docx":
+        texto = leer_docx(documento.path)
+    elif documento.extension in "xlsx":
+        texto = leer_xlsx(documento.path)
+    elif documento.extension in "pptx":
+        texto = leer_pptx(documento.path)
 
     if(texto != ""):
+        print("Texto: ", texto)
         texto_limpio = limpiar_texto(texto)
         chunks = dividir_en_chunks(texto_limpio)
         for i in chunks:
@@ -117,6 +140,5 @@ def recibir_documento(documento):
         print("Insertado en Postgre con ID: " + str(documento_id))
         interfazDB.insertarDocumento(documento_id, chunks, documento.name)
         print("Insertado en Qdrant")
-
-
-#recibir_documento("tmp/hola.txt")
+    else:
+        print("No hay texto")

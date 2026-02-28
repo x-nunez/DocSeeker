@@ -2,12 +2,21 @@ import src.conexions.config as config
 from qdrant_client.models import VectorParams, Distance, PointStruct
 import uuid
 import time
+from google.genai import types
 
 qdrant_client = config.qdrant_client
-model = config.model
+client = config.client
 
 def embedding_texto(texto):
-    return model.encode(texto).tolist()
+    response = client.models.embed_content(
+        model="gemini-embedding-001",
+        contents=texto,
+        config=types.EmbedContentConfig(
+            task_type="SEMANTIC_SIMILARITY",
+            output_dimensionality=1536
+            )
+    )
+    return response.embeddings[0].values
 
 def crearCollection():
     # Fix: extraer nombres antes de comparar
@@ -32,7 +41,7 @@ def crearCollection():
         qdrant_client.create_collection(
             collection_name=collection_name,
             vectors_config=VectorParams(
-                size=384,  # dimensión de all-MiniLM
+                size=1536,
                 distance=Distance.COSINE
             )
         )
@@ -128,7 +137,7 @@ def vectorSearch(query_texto):
         collection_name="documentos",
         query=vector,
         limit=10,
-        score_threshold=0.7,
+        score_threshold=0.4,
         with_payload=True
     )
 

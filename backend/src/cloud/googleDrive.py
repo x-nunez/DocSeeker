@@ -74,13 +74,18 @@ def getDrawingsFile(access_token, file_id):
 	return requests.get(url, headers=headers, params=params, stream=True)
 
 def checkFile(file_path):
-	print(file_path)
-	if len(patternSearchByPath(file_path)) <= 0:
-		print(file_path)
-		return False
-	return True
+	if patternSearchByPath(file_path):
+		return True
+	return False
 
 def getFile(access_token, file_metadata):
+	if "fileExtension" not in file_metadata:
+		return
+	if "capabilities" in file_metadata:
+		if "canDownload" in file_metadata["capabilities"]:
+			if not file_metadata["capabilities"]["canDownload"]:
+				return
+
 	file_id = file_metadata['id']
 	file_name = file_metadata['name']
 	file_mimeType = file_metadata['mimeType']
@@ -110,7 +115,7 @@ def getFile(access_token, file_metadata):
 
 	file_path = os.path.join("tmp", file_name)
 
-	if not checkFile(file_path):
+	if checkFile(file_path):
 		return
 
 	with open(file_path, "wb") as f:
@@ -210,31 +215,7 @@ def downloadall(request: Request):
     if not access_token:
         raise HTTPException(status_code=401, detail="Missing token")
 
-    files = []
-
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Accept": "application/json"
-    }
-    url = "https://www.googleapis.com/drive/v3/files"
-    params = {
-        "pageSize": 1000,
-        "fields": "nextPageToken,files(id,name,mimeType)"
-    }
-
-    while True:
-        response = requests.get(url, headers=headers, params=params)
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=response.text)
-
-        data = response.json()
-        files.extend(data.get("files", []))
-
-        next_token = data.get("nextPageToken")
-        if not next_token:
-            break
-        params["pageToken"] = next_token
-    return "Test"
+    updateDB(access_token)
 
 @router.get("/auth/google/me")
 def me(request: Request):

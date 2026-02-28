@@ -23,14 +23,16 @@ RUN pip install --no-cache-dir \
 	python-dotenv \
 	qdrant-client \
 	psycopg2-binary \
-	sentence-transformers \
 	scikit-learn \
 	requests \
 	PyPDF2 \
 	python-docx \
 	pdf2image \
 	pillow \
-	pytesseract
+	pytesseract \
+	openpyxl \
+	python-pptx \
+	google-genai
 
 COPY . /app
 
