@@ -11,6 +11,11 @@ RUN apt-get update \
 
 COPY . /app
 
+RUN apt-get install \
+	tesseract-ocr \
+	tesseract-ocr-sta \
+	poppler-utils
+
 RUN pip install --no-cache-dir \
 	fastapi \
 	"uvicorn[standard]" \
@@ -21,7 +26,9 @@ RUN pip install --no-cache-dir \
 	scikit-learn \
 	requests \
 	PyPDF2 \
-	python-docx
+	python-docx \
+	pdf2image \
+	pillow
 
 EXPOSE 8000
 
