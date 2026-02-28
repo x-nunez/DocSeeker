@@ -1,6 +1,6 @@
 import re
-from classes.document import Document
-import db.interfazDB as interfazDB
+from src.classes.document import Document
+import src.db.interfazDB as interfazDB
 import os
 import PyPDF2
 import docx
