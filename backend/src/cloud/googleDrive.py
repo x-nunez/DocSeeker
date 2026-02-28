@@ -1,12 +1,13 @@
-from fastapi import FastAPI, Request, HTTPException, Cookie
+from fastapi import Request, HTTPException, APIRouter
 from fastapi.responses import RedirectResponse, JSONResponse
 import os
 import requests
 from urllib.parse import urlencode
 from dotenv import load_dotenv
 
+
 load_dotenv('src/cloud/variables.env')
-app = FastAPI()
+router = APIRouter()
 
 # Parameters for the connection
 CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
@@ -15,7 +16,7 @@ REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 SCOPE = "https://www.googleapis.com/auth/drive.file openid email profile"
 
 # Login Endpoint
-@app.get("/auth/google/login")
+@router.get("/auth/google/login")
 def login_with_google():
     params = {
         "client_id": CLIENT_ID,
@@ -29,7 +30,7 @@ def login_with_google():
     return RedirectResponse(url)
 
 # Google login callback
-@app.get("/auth/google/callback")
+@router.get("/auth/google/callback")
 def google_callback(request: Request, code: str = None):
     if not code:
         return JSONResponse({"error": "No code provided"}, status_code=400)
@@ -63,10 +64,10 @@ def google_callback(request: Request, code: str = None):
         samesite="lax",
         max_age=expires_in
     )
-    
+
     return response
 
-@app.get("/auth/google/me")
+@router.get("/auth/google/me")
 def me(request: Request):
     access_token = request.cookies.get("access_token")
     print("Cookie = ", access_token)
