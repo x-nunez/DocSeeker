@@ -1,127 +1,84 @@
-# hackudc - Docker deployment guide
+## Propósito
+Este proyecto es una solución diseñada para facilitar la gestión, búsqueda y organización de documentos. Este proyecto permite a los usuarios indexar documentos tanto de Google Drive como de OneDrive y realizar búsquedas avanzadas utilizando filtros y consultas vectoriales. Resuelve el problema de encontrar información relevante en grandes volúmenes de datos de manera eficiente.
 
-This project runs with 4 containers:
+## Características
+- **Indexación de documentos**: Soporte para múltiples formatos como PDF, DOCX, XLSX, PPTX, TXT, e imágenes.
+- **Búsqueda avanzada**: Filtros por nombre, extensión, tamaño, fechas y consultas vectoriales.
+- **Integración en la nube**: Sincronización con Google Drive y OneDrive.
+- **Procesamiento de texto**: Permite extracción de texto para múltiples formatos como PDF, DOCX, XLSX o PPTX.
+- **Interfaz intuitiva**: Frontend moderno construido con Next.js.
+- **Base de datos híbrida**: PostgreSQL para datos estructurados y Qdrant para búsquedas vectoriales.
 
-- `postgresql` (database)
-- `qdrant` (vector database)
-- `backend` (FastAPI on port `8000`)
-- `frontend` (Next.js on port `3000`)
+## Instalación
+1. **Clona el repositorio**:
+   ```bash
+   git clone https://github.com/tu-usuario/hackudc.git
+   cd hackudc
 
-## Prerequisites
+2. **Configura los archivos .env**:
+    En postgresql/.env:
+    POSTGRES_USER=usuario
+    POSTGRES_PASSWORD=contraseña
+    POSTGRES_DB=base_de_datos
 
-- Docker and Docker Compose/Engine installed (Docker Desktop on macOS is fine)
-- Ports available: `3000`, `5432`, `6333`, `8000`
+    En backend/.env:
+    # Google OAuth
+    GOOGLE_CLIENT_ID=<your_google_client_id>
+    GOOGLE_CLIENT_SECRET=<your_google_client_secret>
+    GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
 
-## 1) Configure environment files
+    # Microsoft OAuth
+    MICROSOFT_CLIENT_ID=<your_microsoft_client_id>
+    MICROSOFT_TENANT_ID=<your_microsoft_tenant_id>
+    MICROSOFT_REDIRECT_URI=http://localhost:8000/auth/microsoft/callback
+    MICROSOFT_CLIENT_SECRET=<your_microsoft_client_secret>
 
-Create a `.env` file inside `postgresql/`:
+    # Postgres
+    POSTGRES_USER=<postgres_user>
+    POSTGRES_PASSWORD=<postgres_password>
+    POSTGRES_DB=<postgres_database>
 
-```env
-POSTGRES_USER=<postgres_user>
-POSTGRES_PASSWORD=<postgres_password>
-POSTGRES_DB=<postgres_database>
-```
+    # Gemini
+    GEMINI_API_KEY=<your_gemini_api_key>
 
-Create a `.env` file inside `backend/`:
+3. **Construye las imágenes Docker:**
+    bash launch.sh
 
-```env
-POSTGRES_USER=<postgres_user>
-POSTGRES_PASSWORD=<postgres_password>
-POSTGRES_DB=<postgres_database>
+4. **Accede a la aplicación:**
+    - Frontend: http://localhost:3000
+    - Backend API: http://localhost:8000
 
-GOOGLE_CLIENT_ID=<google_client_id>
-GOOGLE_CLIENT_SECRET=<google_client_secret>
-GOOGLE_REDIRECT_URI=<google_redirect_uri>
+## Uso
+### Ejemplo de búsqueda exacta
+1. Accede al frontend en http://localhost:3000.
+2. Introduce un término de búsqueda en la barra de búsqueda.
+3. Aplica filtros avanzados como extensión, tamaño o fechas.
+4. Haz clic en "Buscar" para obtener resultados.
 
-# Optional (defaults are used if omitted)
-POSTGRES_PORT=<postgres_port>
-QDRANT_PORT=<qdrant_port>
-```
+### Ejemplo de búsqueda vectorial
+1. Escribe una consulta en lenguaje natural en la barra de búsqueda.
+2. Haz clic en "Buscar" para obtener documentos relevantes basados en similitud semántica.
 
-## 2) Build images
+## Configuración
+- Google Drive: Configura las credenciales de la API de Google en el archivo .env del backend.
+- OneDrive: Configura las credenciales de la API de Microsoft en el archivo .env del backend.
+- Base de datos: PostgreSQL y Qdrant deben estar configurados correctamente en sus respectivos contenedores.
 
-Run from the project root:
+## Compatibilidad
+    - Frontend: Compatible con navegadores modernos (Chrome, Firefox, Edge).
+    - Backend: Requiere Python 3.11 y Docker.
+    - Bases de datos: PostgreSQL 16 y Qdrant.
 
-```bash
-cd qdrant
-# qdrant uses official image; no build required
+## Solución de problemas
+### Error de conexión a la base de datos:
+    1. Verifica que los contenedores de PostgreSQL y Qdrant estén en ejecución.
+    2. Asegúrate de que las credenciales en .env sean correctas.
+### Problemas con OCR:
+    1. Asegúrate de que tesseract-ocr esté instalado en el contenedor del backend.
+### Errores de sincronización con Google Drive o OneDrive:
+    1. Verifica que los tokens de acceso sean válidos y que las credenciales estén configuradas correctamente.
 
-cd ../postgresql
-./buildImage.sh
-
-cd ../backend
-./buildImage.sh
-
-cd ../frontend
-./buildImage.sh
-```
-
-## 3) Deploy (run) containers
-
-Start in this order (from project root):
-
-```bash
-cd qdrant
-./startContainer.sh
-
-cd ../postgresql
-./startContainer.sh
-
-cd ../backend
-./startContainer.sh
-
-cd ../frontend
-./startContainer.sh
-```
-
-This creates/uses the Docker network `hackudc-net` and exposes:
-
-- Frontend: `http://localhost:3000`
-- Backend API: `http://localhost:8000`
-- PostgreSQL: `localhost:5432`
-- Qdrant: `http://localhost:6333`
-
-## 4) Access the web portal
-
-Open:
-
-```text
-http://localhost:3000
-```
-
-The frontend calls the backend on `http://localhost:8000`.
-
-## Useful commands
-
-Check running containers:
-
-```bash
-docker ps
-```
-
-View logs:
-
-```bash
-docker logs -f frontend-hudc
-docker logs -f backend-hudc
-docker logs -f postgres-hudc
-docker logs -f qdrant
-```
-
-Stop containers:
-
-```bash
-docker stop frontend-hudc backend-hudc postgres-hudc qdrant
-```
-
-Remove containers:
-
-```bash
-docker rm frontend-hudc backend-hudc postgres-hudc qdrant
-```
-
-If you need a clean PostgreSQL start (deletes DB data):
-
-```bash
-docker volume rm pgdata
-```
+## Canales de soporte
+    - Correo electrónico: monterrosocernadasizan@gmail.com
+    - Issues en GitHub: https://github.com/x-nunez/hackudc/issues
+    - Documentación oficial: Consulta los archivos [CONTRIBUTING.md] (https://github.com/x-nunez/hackudc/blob/main/CONTRIBUTING.md) y [CODE_OF_CONDUCT.md] (https://github.com/x-nunez/hackudc/blob/main/CODE_OF_CONDUCT.md) para más detalles.

@@ -3,7 +3,6 @@
 ¡Gracias por tu interés en contribuir a este proyecto! Por favor, lea esta guía antes de comenzar a abrir Issues o realizar pull requests.
 
 ## Entorno de desarrollo
-# hackudc - Docker deployment guide
 
 This project runs with 4 containers:
 
@@ -247,4 +246,4 @@ Este proyecto sigue [Conventional Commits](https://www.conventionalcommits.org/)
 
 Este proyecto sigue un **Código de Conducta** para garantizar un entorno de trabajo inclusivo y respetuoso. Por favor, sigue las normas de conducta en tus interacciones.
 
-Puedes leer el código de conducta completo aquí: [Código de Conducta](link-al-codigo-de-conducta).
+Puedes leer el código de conducta completo aquí: [Código de Conducta](https://github.com/x-nunez/hackudc/blob/main/CODE_OF_CONDUCT.md).
