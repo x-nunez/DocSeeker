@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HackUDC",
-  description: "HackUDC Document Indexer",
+  title: "DocSeeker",
+  description: "Find any document in seconds: we unify files from your cloud drives into one private, AI-powered search workspace",
 };
 
 export default function RootLayout({

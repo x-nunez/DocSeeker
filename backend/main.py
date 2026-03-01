@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
     # Todo lo que esté aquí se ejecuta AL APAGAR (opcional)
     # qdrant_client.close()
 
-app = FastAPI(title="Mi App Vectorial", lifespan=lifespan)
+app = FastAPI(title="DocSeeker", lifespan=lifespan)
 # Add CORS
 app.add_middleware(
     CORSMiddleware,
