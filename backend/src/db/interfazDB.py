@@ -140,7 +140,7 @@ def vectorSearch(query_texto):
         collection_name="documentos",
         query=vector,
         limit=10,
-        score_threshold=0.7,
+        score_threshold=0.5,
         with_payload=True
     )
 
@@ -151,6 +151,7 @@ def vectorSearch(query_texto):
         doc_id = payload.get("documento_id")
         nombre = payload.get("nombre_documento")
         texto = payload.get("texto", "")
+        extension = payload.get("extension", "")
         if doc_id and doc_id not in vistos:
             vistos[doc_id] = nombre
             fragmentos[doc_id] = texto  # el primero en aparecer es el de mayor score
@@ -159,6 +160,7 @@ def vectorSearch(query_texto):
         {
             "documento_id": doc_id,
             "nombre_documento": nombre,
+            "extension": extension,
             "fragmento": fragmentos[doc_id]  # chunk más relevante del documento
         }
         for doc_id, nombre in vistos.items()
