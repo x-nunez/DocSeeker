@@ -28,7 +28,7 @@ Los siguientes comportamientos no serán tolerados:
 
 Si te encuentras con un comportamiento que violó este código de conducta, por favor repórtalo de inmediato a los mantenedores del proyecto. Las violaciones pueden ser reportadas de manera confidencial a:
 
-- **Correo electrónico de contacto**: [email@dominio.com]
+- **Correo electrónico de contacto**: [monterrosocernadasizan@gmail.com]
 
 Tu reporte será tratado de manera confidencial y se abordará lo antes posible. Queremos asegurarnos de que todos los involucrados en el proyecto se sientan respetados.
 

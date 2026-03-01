@@ -5,6 +5,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import ThemeToggle from "./dashboard/ThemeToggle/ThemeToggle";
 
 export default function Home() {
   const router = useRouter();
@@ -37,7 +38,9 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-zinc-50 font-sans dark:bg-black">
-
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <header>
         <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-center text-black dark:text-zinc-50">
             Welcome to the future of your documents
