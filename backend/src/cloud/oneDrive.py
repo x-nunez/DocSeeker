@@ -189,16 +189,16 @@ def microsoft_callback(request: Request, code: str = None, background_tasks: Bac
     token_response = r.json()
     print("TOKEN RESPONSE: ", token_response)
 
-    access_token = token_response.get("access_token")
+    onedrive_token = token_response.get("access_token")
     expires_in   = int(token_response.get("expires_in", 3600))
 
-    if not access_token:
+    if not onedrive_token:
         return JSONResponse({"error": "No access token returned"}, status_code=400)
 
     response = RedirectResponse(url="http://localhost:3000/dashboard")
     response.set_cookie(
-        key="access_token",
-        value=access_token,
+        key="onedrive_token",
+        value=onedrive_token,
         httponly=True,
         secure=False,
         samesite="lax",
@@ -207,55 +207,29 @@ def microsoft_callback(request: Request, code: str = None, background_tasks: Bac
 
     if background_tasks:
         background_tasks.add_task(crearCollection)
-        background_tasks.add_task(updateDB, access_token)
+        background_tasks.add_task(updateDB, onedrive_token)
 
     return response
 
 
 @router.get("/downloadall/microsoft")
 def downloadall(request: Request):
-    access_token = request.cookies.get("access_token")
-
-    if not access_token:
-        raise HTTPException(status_code=401, detail="Missing token")
-
-    files = []
-    url = f"{GRAPH_BASE}/me/drive/root/search(q='')"
-    params = {
-        "$top": 1000,
-        "$select": "id,name,file,folder,size,createdDateTime,lastModifiedDateTime,webUrl"
-    }
-
-    while True:
-        response = requests.get(url, headers=_auth_headers(access_token), params=params)
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=response.text)
-
-        data = response.json()
-        files.extend(data.get("value", []))
-
-        next_link = data.get("@odata.nextLink")
-        if not next_link:
-            break
-        url = next_link
-        params = {}
-
-    print(files)
-    return "Test"
+    onedrive_token = request.cookies.get("onedrive_token")
+    updateDB(onedrive_token)
 
 
 @router.get("/auth/microsoft/me")
 def me(request: Request):
-    access_token = request.cookies.get("access_token")
-    print("Cookie = ", access_token)
+    onedrive_token = request.cookies.get("onedrive_token")
+    print("Cookie = ", onedrive_token)
 
-    if not access_token:
+    if not onedrive_token:
         raise HTTPException(status_code=401, detail="Missing token")
 
     # Perfil del usuario
     userinfo_resp = requests.get(
         f"{GRAPH_BASE}/me",
-        headers=_auth_headers(access_token),
+        headers=_auth_headers(onedrive_token),
         timeout=15
     )
     if userinfo_resp.status_code != 200:
@@ -264,7 +238,7 @@ def me(request: Request):
     # Info del drive (quota, etc.)
     drive_resp = requests.get(
         f"{GRAPH_BASE}/me/drive",
-        headers=_auth_headers(access_token),
+        headers=_auth_headers(onedrive_token),
         timeout=15
     )
     if drive_resp.status_code != 200:
@@ -282,5 +256,5 @@ def me(request: Request):
 @router.get("/auth/microsoft/logout")
 def logout():
     response = JSONResponse({"message": "Logged out successfully"})
-    response.delete_cookie(key="access_token", path="/")
+    response.delete_cookie(key="onedrive_token", path="/")
     return response
