@@ -121,11 +121,11 @@ def recibir_documento(documento):
         texto = leer_imagen(documento.path)
     elif documento.extension == "txt":
         texto = leer_txt(documento.path)
-    elif documento.extension in "docx":
+    elif documento.extension == "docx":
         texto = leer_docx(documento.path)
-    elif documento.extension in "xlsx":
+    elif documento.extension == "xlsx":
         texto = leer_xlsx(documento.path)
-    elif documento.extension in "pptx":
+    elif documento.extension == "pptx":
         texto = leer_pptx(documento.path)
 
     if(texto != ""):

@@ -140,7 +140,7 @@ def vectorSearch(query_texto):
         collection_name="documentos",
         query=vector,
         limit=10,
-        score_threshold=0.7,
+        score_threshold=0.5,
         with_payload=True
     )
 
