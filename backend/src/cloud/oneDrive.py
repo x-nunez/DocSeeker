@@ -7,6 +7,9 @@ from src.eater.eater import recibir_documento
 from src.db.interfazDB import crearCollection
 from src.classes.document import Document
 from src.cloud.file import File
+from src.cloud.googleDrive import checkFile
+from datetime import datetime
+
 
 # Read .env parameters for connection
 CLIENT_ID = os.getenv("MICROSOFT_CLIENT_ID")
@@ -104,54 +107,83 @@ def getFile(access_token, file_metadata):
     return File(file_path, file_name, file_metadata)
 
 
-def checkFile(file_metadata):
-    return True
-
-
-#Sincronización de BD
 def updateDB(access_token):
-    """Recorre todos los archivos del OneDrive del usuario y los indexa."""
-    files = []
-    url = f"{GRAPH_BASE}/me/drive/root/search(q='')"
-    params = {
-        "$top": 1000,
-        "$select": "id,name,file,folder,size,createdDateTime,lastModifiedDateTime,webUrl,parentReference"
-    }
+    url = f"{GRAPH_BASE}/me/drive/root/delta"
+    headers = _auth_headers(access_token)
 
-    while True:
-        response = requests.get(url, headers=_auth_headers(access_token), params=params)
+    while url:
+        response = requests.get(url, headers=headers)
+
         if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=response.text)
-
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=response.text
+            )
         data = response.json()
-        files.extend(data.get("value", []))
 
-        next_link = data.get("@odata.nextLink")
-        if not next_link:
-            break
-        url = next_link
-        params = {}
+        for f in data.get("value", []):
 
-    for f in files:
-        print(f)
-        if checkFile(f):
-            file = getFile(access_token, f)
-            if file:
+            if "folder" in f or "file" not in f:
+                continue
 
-                # Extraer extensión del nombre de archivo
-                extension = os.path.splitext(file.name)[1].lstrip(".") or ""
+            mime_type = f.get("file", {}).get("mimeType", "")
+            file_id = f.get("id")
+            file_name = f.get("name")
+
+            if mime_type in SKIP_MIME_TYPES:
+                continue
+
+            try:
+                if mime_type in OFFICE_TO_TEXT:
+                    download_url = f"{GRAPH_BASE}/me/drive/items/{file_id}/content?format=pdf"
+                    response_file = requests.get(
+                        download_url,
+                        headers=headers,
+                        stream=True
+                    )
+                    file_name = file_name.rsplit(".", 1)[0] + ".pdf"
+                else:
+                    response_file = getBinaryFile(access_token, file_id)
+
+                if response_file.status_code != 200:
+                    print("Download failed:", file_name, response_file.text)
+                    continue
+
+                os.makedirs("tmp", exist_ok=True)
+                file_path = os.path.abspath(os.path.join("tmp", file_name))
+
+                if checkFile(file_path):
+                    continue
+
+                with open(file_path, "wb") as out:
+                    for chunk in response_file.iter_content(chunk_size=8192):
+                        if chunk:
+                            out.write(chunk)
+
+                extension = os.path.splitext(file_name)[1].lstrip(".") or ""
+
+                created = datetime.fromisoformat(f.get("createdDateTime").replace("Z", "+00:00"))
+                modified = datetime.fromisoformat(f.get("lastModifiedDateTime").replace("Z", "+00:00"))
+
                 documento = Document(
-                    file.name,
-                    file.path,
+                    file_path,
+                    file_name,
                     extension,
-                    file.metadata.get("lastModifiedDateTime"),
-                    file.metadata.get("createdDateTime"),
-                    file.metadata.get("createdDateTime"),
-                    file.metadata.get("size"),
-                    file.metadata.get("webUrl")
+                    modified,
+                    created,
+                    f.get("size"),
+                    f.get("webUrl")
                 )
-                recibir_documento(documento)
 
+                try:
+                    recibir_documento(documento)
+                except Exception as e:
+                    print("Processing failed:", file_name, e)
+
+            except Exception as e:
+                print("Unexpected error:", file_name, e)
+
+        url = data.get("@odata.nextLink")
 
 #Rutas OAuth2
 
