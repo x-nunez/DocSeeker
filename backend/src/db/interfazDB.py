@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 import src.conexions.config as config
 from qdrant_client.models import VectorParams, Distance, PointStruct
 import uuid
@@ -20,7 +22,7 @@ def embedding_texto(texto):
 
 def crearCollection():
     # Fix: extraer nombres antes de comparar
-    #qdrant_client.delete_collection(collection_name="documentos")
+    qdrant_client.delete_collection(collection_name="documentos")
     existing = []
     last_error = None
     for _ in range(10):
@@ -58,7 +60,7 @@ def insertarPostgreSQL(documento):
         postgres_connection.commit()
         return documento_id
 
-def insertarDocumento(documento_id, chunks, filename):
+def insertarDocumento(documento_id, chunks, filename, extension):
     """
     Recibe el UUID del documento (ya insertado en PostgreSQL)
     y la lista de chunks de texto. Genera embeddings y los sube a Qdrant.
@@ -74,6 +76,7 @@ def insertarDocumento(documento_id, chunks, filename):
                     "documento_id": str(documento_id),  # FK a PostgreSQL
                     "chunk_index": i,
                     "nombre_documento": filename,
+                    "extension": extension,
                     "texto": chunk
                 }
             )
@@ -148,6 +151,7 @@ def vectorSearch(query_texto):
         doc_id = payload.get("documento_id")
         nombre = payload.get("nombre_documento")
         texto = payload.get("texto", "")
+        extension = payload.get("extension", "")
         if doc_id and doc_id not in vistos:
             vistos[doc_id] = nombre
             fragmentos[doc_id] = texto  # el primero en aparecer es el de mayor score
@@ -156,6 +160,7 @@ def vectorSearch(query_texto):
         {
             "documento_id": doc_id,
             "nombre_documento": nombre,
+            "extension": extension,
             "fragmento": fragmentos[doc_id]  # chunk más relevante del documento
         }
         for doc_id, nombre in vistos.items()

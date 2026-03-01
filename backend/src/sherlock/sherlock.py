@@ -1,12 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+
 from src.db import interfazDB
 from fastapi import APIRouter
-from .search import router as search_router
 from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
 
 router = APIRouter()
-router.include_router(search_router)
 
 class FiltrosBusqueda(BaseModel):
     nombre: Optional[str] = None
@@ -57,7 +57,7 @@ def busquedaVectorial(string):
     """
     print(string)
     documents = interfazDB.vectorSearch(string)
-    print(documents)
+    print(f"Vector search results for query '{string}': {documents}")
     return documents
 
 

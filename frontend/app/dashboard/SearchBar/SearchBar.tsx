@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 "use client";
 
 import { useState } from "react";
@@ -21,14 +23,36 @@ export default function MainPage() {
     if (!query.trim()) return;
 
     setLoading(true);
+    const filtersOn = filters.extension || filters.size_min || filters.size_max || filters.date_min || filters.date_max;
+
     try {
-      const res = await fetch(
-        `http://localhost:8000/sherlock/busquedaVectorial?string=${encodeURIComponent(query)}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
+      let res;
+
+      if (filtersOn){
+        //POST a busquedaExacta con filtros
+        res = await fetch("http://localhost:8000/sherlock/busquedaVectorial?string=${encodeURIComponent(query)}",
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+              nombre: query || null,
+              extension: filters.extension || null,
+              size_min: filters.size_min,
+              size_max: filters.size_max,
+              date_min: filters.date_min ? new Date(filters.date_min).toISOString() : null,
+              date_max: filters.date_max ? new Date(filters.date_max).toISOString() : null,
+            })
+          });
+      } else{
+        //GET a busquedaVectorial
+        res = await fetch("http://localhost:8000/sherlock/busquedaVectorial?string=${encodeURIComponent(query)}",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+      }
 
       if (res.ok) {
         const data = await res.json();

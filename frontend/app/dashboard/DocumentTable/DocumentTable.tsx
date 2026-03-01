@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 "use client";
 
 import { type JSX } from "react";
@@ -5,11 +7,9 @@ import { FaFileAlt, FaFilePowerpoint } from "react-icons/fa";
 import { GrCode, GrDocumentOutlook, GrDocumentCsv, GrDocumentExcel, GrDocumentNotes, GrDocumentPdf, GrDocumentTxt, GrDocumentWord, GrImage } from "react-icons/gr";
 import { LuCodeXml, LuFileJson } from "react-icons/lu";
 import { RiFolderZipFill } from "react-icons/ri";
-import { SiGoogledocs, SiGoogleforms, SiGooglesheets, SiGoogleslides } from "react-icons/si";
 
 export default function DocumentTable({ results }: { results: Record<string, unknown>[] }) {
-    //Si la tabla es vacia no se genera nada
-    if (results!= null && results.length == 0) return <p>No documents found</p>; //TODO: Revisar CSS
+    if (results!= null && results.length == 0) return <p>No documents found</p>;
 
     const ICON_SIZE = 30;
     const iconos: Record<string, JSX.Element> = {
