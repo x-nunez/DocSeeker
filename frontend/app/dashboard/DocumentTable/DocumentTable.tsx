@@ -59,7 +59,20 @@ export default function DocumentTable({ results }: { results: Record<string, unk
                     <div key={i} className="documents-row-css">
                         <div>
                             <h4 className="font-bold">{firstValue}</h4>
-                            <p>{rest}</p>
+                            <div className="flex flex-wrap">
+                                {rest.split(" - ").map((item, index) => {
+                                    const isLink = item.startsWith("http://") || item.startsWith("https://");
+                                    return (
+                                        <span key={index} className="mini-tag border rounded px-4 py-0.5 m-1">
+                                            {isLink ? (
+                                                <a href={item} target="_blank" rel="noopener noreferrer">Link al documento</a>
+                                            ) : (
+                                                item
+                                            )}
+                                        </span>
+                                    );
+                                })}
+                            </div>
                         </div>
                         <div>
                             {iconos[String(row["extension"])] || <FaFileAlt size={ICON_SIZE} />}

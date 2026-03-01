@@ -20,33 +20,31 @@ export default function MainPage() {
   });
 
   const handleSearch = async () => {
-    if (!query.trim()) return;
-
-    setLoading(true);
     const filtersOn = filters.extension || filters.size_min || filters.size_max || filters.date_min || filters.date_max;
 
     try {
       let res;
 
       if (filtersOn){
-        //POST a busquedaExacta con filtros
-        res = await fetch("http://localhost:8000/sherlock/busquedaVectorial?string=${encodeURIComponent(query)}",
-          {
-            method: "POST",
-            credentials: "include",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-              nombre: query || null,
-              extension: filters.extension || null,
-              size_min: filters.size_min,
-              size_max: filters.size_max,
-              date_min: filters.date_min ? new Date(filters.date_min).toISOString() : null,
-              date_max: filters.date_max ? new Date(filters.date_max).toISOString() : null,
-            })
-          });
+        setLoading(true);
+        //GET a busquedaExacta con filtros
+        const params = new URLSearchParams();
+        if (query) params.append("nombre", query);
+        if (filters.extension) params.append("extension", filters.extension);
+        if (filters.size_min !== null) params.append("size_min", filters.size_min.toString());
+        if (filters.size_max !== null) params.append("size_max", filters.size_max.toString());
+        if (filters.date_min) params.append("date_min", filters.date_min);
+        if (filters.date_max) params.append("date_max", filters.date_max);
+
+        res = await fetch(`http://localhost:8000/sherlock/busquedaExacta?${params.toString()}`, {
+          method: "GET",
+          credentials: "include",
+        });
       } else{
+        if (!query.trim()) return;
+        setLoading(true);
         //GET a busquedaVectorial
-        res = await fetch("http://localhost:8000/sherlock/busquedaVectorial?string=${encodeURIComponent(query)}",
+        res = await fetch(`http://localhost:8000/sherlock/busquedaVectorial?string=${encodeURIComponent(query)}`,
           {
             method: "GET",
             credentials: "include",

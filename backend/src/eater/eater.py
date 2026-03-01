@@ -140,7 +140,7 @@ def recibir_documento(documento):
 
         documento_id = interfazDB.insertarPostgreSQL(documento)
         print("Insertado en Postgre con ID: " + str(documento_id))
-        interfazDB.insertarDocumento(documento_id, chunks, documento.name, documento.extension)
+        interfazDB.insertarDocumento(documento_id, chunks, documento.name, documento.extension, documento.link, documento.path)
         print("Insertado en Qdrant")
     else:
         print("No hay texto")

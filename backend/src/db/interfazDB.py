@@ -60,7 +60,7 @@ def insertarPostgreSQL(documento):
         postgres_connection.commit()
         return documento_id
 
-def insertarDocumento(documento_id, chunks, filename, extension):
+def insertarDocumento(documento_id, chunks, filename, extension, link, path):
     """
     Recibe el UUID del documento (ya insertado en PostgreSQL)
     y la lista de chunks de texto. Genera embeddings y los sube a Qdrant.
@@ -77,7 +77,9 @@ def insertarDocumento(documento_id, chunks, filename, extension):
                     "chunk_index": i,
                     "nombre_documento": filename,
                     "extension": extension,
-                    "texto": chunk
+                    "texto": chunk,
+                    "link": link,
+                    "path": path
                 }
             )
         )
@@ -88,13 +90,13 @@ def insertarDocumento(documento_id, chunks, filename, extension):
 def patternSearchByName(name_pattern):
     postgres_connection = config.get_postgres_connection()
     with postgres_connection.cursor() as cursor:
-        query = "SELECT * FROM documentos WHERE name LIKE %s"
+        query = "SELECT * FROM documentos WHERE nombre LIKE %s"
         cursor.execute(query, (name_pattern,))
         results = cursor.fetchall()
         # Aquí puedes convertir los resultados a objetos Document si es necesario
         return results
 
-def patternSearchBySize(size_max, size_min):
+def patternSearchBySize(size_min, size_max):
     postgres_connection = config.get_postgres_connection()
     with postgres_connection.cursor() as cursor:
         query = "SELECT * FROM documentos WHERE size <= %s AND size >= %s"
@@ -109,6 +111,7 @@ def patternSearchByExtension(extension):
         query = "SELECT * FROM documentos WHERE extension = %s"
         cursor.execute(query, (extension,))
         results = cursor.fetchall()
+        print(results)
         # Aquí puedes convertir los resultados a objetos Document si es necesario
         return results
 
@@ -144,24 +147,25 @@ def vectorSearch(query_texto):
         with_payload=True
     )
 
-    vistos = {}
-    fragmentos = {}  # guarda el chunk más relevante por documento (el primero = mayor score)
+    vistos = []
+
     for result in results.points:
         payload = result[1] if isinstance(result, tuple) else result.payload
         doc_id = payload.get("documento_id")
         nombre = payload.get("nombre_documento")
         texto = payload.get("texto", "")
         extension = payload.get("extension", "")
+        link = payload.get("link", "")
+        path = payload.get("path", "")
         if doc_id and doc_id not in vistos:
-            vistos[doc_id] = nombre
-            fragmentos[doc_id] = texto  # el primero en aparecer es el de mayor score
+            vistos.append([nombre, extension, path, link])
 
     return [
         {
-            "documento_id": doc_id,
-            "nombre_documento": nombre,
-            "extension": extension,
-            "fragmento": fragmentos[doc_id]  # chunk más relevante del documento
+            "nombre": i[0],
+            "extension": i[1],
+            "path": i[2],
+            "link": i[3],
         }
-        for doc_id, nombre in vistos.items()
+        for i in vistos
     ]

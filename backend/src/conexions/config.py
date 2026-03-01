@@ -10,9 +10,9 @@ QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
 
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
 POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
-POSTGRES_DB = os.getenv("POSTGRES_DB", "hackudc")
-POSTGRES_USER = os.getenv("POSTGRES_USER", "user")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "pass")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "merlin")
+POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
 
 qdrant_client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
 
