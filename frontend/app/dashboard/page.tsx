@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SearchBar from "./SearchBar/SearchBar";
+import ThemeToggle from "./ThemeToggle/ThemeToggle";
 
 export default function MainPage() {
   const router = useRouter();
@@ -84,6 +85,7 @@ export default function MainPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-zinc-50 font-sans dark:bg-black p-4">
       <div className="absolute top-4 right-4 flex gap-3">
+        <ThemeToggle />
         <div className="relative group">
           <button
             className="w-10 h-10 flex items-center justify-center bg-white border border-zinc-200 rounded-lg hover:bg-zinc-100 transition-colors"
